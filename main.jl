@@ -28,7 +28,6 @@ function get_slots()
         3 => Dict{Int, Union{Nothing, Game}}(
             1 => nothing, 
             2 => nothing,
-            3 => nothing,
         ),
         4 => Dict{Int, Union{Nothing, Game}}(
             1 => nothing, 
@@ -134,7 +133,7 @@ function solve()
 end
 
 function mymatch(teams, slots, slot, field)
-    if slot > 8  
+    if slot > 8 #slot == 8 && field == 3 
         pretty_print(slots)
     end
 
