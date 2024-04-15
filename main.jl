@@ -42,6 +42,7 @@ function get_slots()
         6 => Dict{Int, Union{Nothing, Game}}(
             1 => nothing, 
             2 => nothing,
+            3 => nothing,
         ),
         7 => Dict{Int, Union{Nothing, Game}}(
             1 => nothing, 
@@ -92,11 +93,6 @@ end
 function get_available_teams(teams, slots, slot)
     available_teams = copy(teams)
 
-    # after lunch break
-    if slot == 6
-        return available_teams
-    end
-
     for field in keys(slots[slot])
         if slots[slot][field] != nothing
             delete!(available_teams, slots[slot][field].team1)
@@ -104,7 +100,9 @@ function get_available_teams(teams, slots, slot)
         end
     end
     
-    if slot == 1
+
+    # morning or lunch break
+    if slot == 1 || slot == 6
         return available_teams
     end
 
