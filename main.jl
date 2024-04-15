@@ -14,51 +14,47 @@ end
 teams = Set([Team("1"), Team("2"), Team("3"), Team("4"), Team("5"), Team("6"), Team("7"), Team("8"), Team("9"), Team("10")])
 
 
-
-slots = Dict(
-    1 => Dict{Int, Union{Nothing, Game}}(
-        1 => nothing, 
-        2 => nothing,
-        3 => nothing,
-    ),
-    2 => Dict{Int, Union{Nothing, Game}}(
-        1 => nothing, 
-        2 => nothing,
-    ),
-    3 => Dict{Int, Union{Nothing, Game}}(
-        1 => nothing, 
-        2 => nothing,
-        3 => nothing,
-    ),
-    4 => Dict{Int, Union{Nothing, Game}}(
-        1 => nothing, 
-        2 => nothing,
-    ),
-    5 => Dict{Int, Union{Nothing, Game}}(
-        1 => nothing, 
-        2 => nothing,
-        3 => nothing,
-    ),
-    6 => Dict{Int, Union{Nothing, Game}}(
-        1 => nothing, 
-        2 => nothing,
-    ),
-    7 => Dict{Int, Union{Nothing, Game}}(
-        1 => nothing, 
-        2 => nothing,
-    ),
-    8 => Dict{Int, Union{Nothing, Game}}(
-        1 => nothing, 
-        2 => nothing,
-    ),
-    9 => Dict{Int, Union{Nothing, Game}}(
-        1 => nothing, 
-        2 => nothing,
-        3 => nothing,
-    ),
-
-)
-
+function get_slots()
+    SLOTS = Dict(
+        1 => Dict{Int, Union{Nothing, Game}}(
+            1 => nothing, 
+            2 => nothing,
+            3 => nothing,
+        ),
+        2 => Dict{Int, Union{Nothing, Game}}(
+            1 => nothing, 
+            2 => nothing,
+        ),
+        3 => Dict{Int, Union{Nothing, Game}}(
+            1 => nothing, 
+            2 => nothing,
+            3 => nothing,
+        ),
+        4 => Dict{Int, Union{Nothing, Game}}(
+            1 => nothing, 
+            2 => nothing,
+        ),
+        5 => Dict{Int, Union{Nothing, Game}}(
+            1 => nothing, 
+            2 => nothing,
+            3 => nothing,
+        ),
+        6 => Dict{Int, Union{Nothing, Game}}(
+            1 => nothing, 
+            2 => nothing,
+        ),
+        7 => Dict{Int, Union{Nothing, Game}}(
+            1 => nothing, 
+            2 => nothing,
+            3 => nothing,
+        ),
+        8 => Dict{Int, Union{Nothing, Game}}(
+            1 => nothing, 
+            2 => nothing,
+        ),
+    
+    )
+end    
 
 
 function check_more_than_4_games(teams, slots)
@@ -79,8 +75,34 @@ function check_more_than_4_games(teams, slots)
 end
 
 
+function check_same_game(slots, team_a, team_b)
+    for slot in keys(slots)
+        for field in keys(slots[slot])
+            if slots[slot][field] != nothing
+                if (slots[slot][field].team1 == team_a && slots[slot][field].team2 == team_b) || (slots[slot][field].team1 == team_b && slots[slot][field].team2 == team_a)
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
+
 function get_available_teams(teams, slots, slot)
     available_teams = copy(teams)
+
+    # after lunch break
+    if slot == 6
+        return available_teams
+    end
+
+    for field in keys(slots[slot])
+        if slots[slot][field] != nothing
+            delete!(available_teams, slots[slot][field].team1)
+            delete!(available_teams, slots[slot][field].team2)
+        end
+    end
     
     if slot == 1
         return available_teams
@@ -93,42 +115,54 @@ function get_available_teams(teams, slots, slot)
         end
     end
 
+
     return available_teams
 end
 
 
-
-
-
-function match(teams, slots)
-    Random.seed!(1) 
-    for slot in sort(collect(keys(slots)))
-        available_teams = get_available_teams(teams, slots, slot)
-        for field in sort(collect(keys(slots[slot])))
-            for _ in 1:20
-                team_a = rand(available_teams)
-                delete!(available_teams, team_a)
-                team_b = rand(available_teams)
-                delete!(available_teams, team_b)
-                slots[slot][field] = Game(team_a, team_b)
-
-                if check_more_than_4_games(teams, slots) == true 
-                    push!(available_teams, team_a) 
-                    push!(available_teams, team_b)
-                    slots[slot][field] = nothing
-                    continue 
-                else
-                    if slot == 9 && field == 3
-                        return pretty_print(slots)
-                    end
-                end
-            end
-            break
-        end
+function next_slot(slots, slot, field)
+    if length(slots[slot]) == field
+        return slot + 1, 1
+    else
+        return slot, field + 1
     end
-    
+
 end
 
+
+function solve()
+    Random.seed!(1234)
+    mymatch(teams, get_slots(), 1, 1)
+end
+
+function mymatch(teams, slots, slot, field)
+    if slot > 8  
+        pretty_print(slots)
+    end
+
+    available_teams = get_available_teams(teams, slots, slot)
+    for team_a in shuffle!(collect(available_teams))
+        delete!(available_teams, team_a)
+        for team_b in shuffle!(collect(available_teams))
+            if check_same_game(slots, team_a, team_b) == true
+                continue 
+            end
+            
+            slots[slot][field] = Game(team_a, team_b)
+
+            if check_more_than_4_games(teams, slots) == true
+                slots[slot][field] = nothing
+                continue 
+            else
+                slot_new, field_new = next_slot(slots, slot, field)
+                mymatch(teams, slots, slot_new, field_new)
+                slots[slot][field] = nothing
+            end
+        end
+        push!(available_teams, team_a)
+    end
+    return 
+end
 
 
 function pretty_print(slots)
@@ -136,8 +170,8 @@ function pretty_print(slots)
         print("\nSlot: ", slot)
         for field in sort(collect(keys(slots[slot])))
             print("\t \t Field ", field, ":\t")
-            print("", slots[slot][field].team1.name)
-            print("\tvs\t", slots[slot][field].team2.name)
+            print("Team ", slots[slot][field].team1.name)
+            print("\tvs\tTeam ", slots[slot][field].team2.name)
         end
     end
 end
