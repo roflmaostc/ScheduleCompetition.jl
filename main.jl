@@ -135,6 +135,7 @@ end
 function mymatch(teams, slots, slot, field)
     if slot > 8 #slot == 8 && field == 3 
         pretty_print(slots)
+        return
     end
 
     available_teams = get_available_teams(teams, slots, slot)
