@@ -47,11 +47,11 @@ function get_slots()
         7 => Dict{Int, Union{Nothing, Game}}(
             1 => nothing, 
             2 => nothing,
-            3 => nothing,
         ),
         8 => Dict{Int, Union{Nothing, Game}}(
             1 => nothing, 
             2 => nothing,
+            3 => nothing,
         ),
     
     )
