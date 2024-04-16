@@ -10,7 +10,6 @@ struct Game
 end
 
 
-teams = Set([Team("1"), Team("2"), Team("3"), Team("4"), Team("5"), Team("6"), Team("7"), Team("8"), Team("9"), Team("10")])
 
 
 function pretty_print(slots)
@@ -179,6 +178,8 @@ end
 
 
 function solve()
+    #teams = Set([Team("1"), Team("2"), Team("3"), Team("4"), Team("5"), Team("6"), Team("7"), Team("8"), Team("9"), Team("10")])
+    teams = Set([Team("1 Scoober Seekers"), Team("2 Universe Huckers"), Team("3 NASA Noobs"), Team("4 Space Cowboys"), Team("5 Overhead Orbiters"), Team("6 Layout Aliens"), Team("7 Moon Patrol"), Team("8 Vulcan League"), Team("9 Hammer Novas"), Team("10 Greatest Flyers")])
     Random.seed!(1234)
     games = Dict{Team, Int}(team => 0 for team in teams) 
     opponents = Dict{Team, Set{Team}}(team => Set{Team}() for team in teams)
