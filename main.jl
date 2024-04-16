@@ -4,7 +4,6 @@ struct Team
     name::String
 end
 
-
 struct Game
     team1::Team
     team2::Team
@@ -13,6 +12,17 @@ end
 
 teams = Set([Team("1"), Team("2"), Team("3"), Team("4"), Team("5"), Team("6"), Team("7"), Team("8"), Team("9"), Team("10")])
 
+
+function pretty_print(slots)
+    for slot in sort(collect(keys(slots)))
+        print("\nSlot: ", slot)
+        for field in sort(collect(keys(slots[slot])))
+            print("\t \t Field ", field, ":\t")
+            print("Team ", slots[slot][field].team1.name)
+            print("\tvs\tTeam ", slots[slot][field].team2.name)
+        end
+    end
+end
 
 function get_slots()
     SLOTS = Dict(
@@ -28,6 +38,7 @@ function get_slots()
         3 => Dict{Int, Union{Nothing, Game}}(
             1 => nothing, 
             2 => nothing,
+            3 => nothing,
         ),
         4 => Dict{Int, Union{Nothing, Game}}(
             1 => nothing, 
@@ -36,7 +47,6 @@ function get_slots()
         5 => Dict{Int, Union{Nothing, Game}}(
             1 => nothing, 
             2 => nothing,
-            3 => nothing,
         ),
         6 => Dict{Int, Union{Nothing, Game}}(
             1 => nothing, 
@@ -64,44 +74,6 @@ function get_slots()
          ),
     )
 end    
-
-
-
-function check_more_than_4_games(teams, slots)
-    counter = Dict(team => 0 for team in teams)
-    for slot in keys(slots)
-        for field in keys(slots[slot])
-            if slots[slot][field] != nothing
-                counter[slots[slot][field].team1] += 1
-                counter[slots[slot][field].team2] += 1
-
-                ct1 = counter[slots[slot][field].team1]
-                ct2 = counter[slots[slot][field].team2]
-
-                if ((slot < 9 && (ct1 > 4 || ct2 > 4)) ||
-                    (slot < 7 && (ct1 > 3 || ct2 > 3)) ||
-                    (ct1 > 5 || ct2 > 5)) 
-                    return true 
-                end
-            end
-        end
-    end 
-    return false
-end
-
-
-function check_same_game(slots, team_a, team_b)
-    for slot in keys(slots)
-        for field in keys(slots[slot])
-            if slots[slot][field] != nothing
-                if (slots[slot][field].team1 == team_a && slots[slot][field].team2 == team_b) || (slots[slot][field].team1 == team_b && slots[slot][field].team2 == team_a)
-                    return true
-                end
-            end
-        end
-    end
-    return false
-end
 
 
 function get_available_teams(teams, slots, slot)
@@ -142,13 +114,7 @@ function next_slot(slots, slot, field)
 end
 
 
-function solve()
-    Random.seed!(1234)
-    games = Dict{Team, Int}(team => 0 for team in teams) 
-    mymatch(teams, get_slots(), 1, 1, games)
-end
-
-function mymatch(teams, slots, slot, field, games)
+function mymatch(teams, slots, slot, field, games, opponents)
     if slot > 10
         pretty_print(slots)
         return
@@ -158,14 +124,16 @@ function mymatch(teams, slots, slot, field, games)
     for team_a in shuffle!(collect(available_teams))
         delete!(available_teams, team_a)
         for team_b in shuffle!(collect(available_teams))
-            if check_same_game(slots, team_a, team_b) == true
+            if team_a in opponents[team_b] || team_b in opponents[team_a] 
                 continue 
             end
             
             slots[slot][field] = Game(team_a, team_b)
             games[team_a] += 1
             games[team_b] += 1
-            
+            push!(opponents[team_a], team_b)
+            push!(opponents[team_b], team_a)
+        
             g = getindex.(Ref(games), keys(games))
             if ((any(g .> 4) && slot < 9) ||
                 (any(g .> 5)))
@@ -173,13 +141,17 @@ function mymatch(teams, slots, slot, field, games)
                 slots[slot][field] = nothing
                 games[team_a] -= 1
                 games[team_b] -= 1
-
+                delete!(opponents[team_a], team_b)
+                delete!(opponents[team_b], team_a)
+                    
                 continue 
             else
                 slot_new, field_new = next_slot(slots, slot, field)
-                mymatch(teams, slots, slot_new, field_new, games)
+                mymatch(teams, slots, slot_new, field_new, games, opponents)
                 games[team_a] -= 1
                 games[team_b] -= 1
+                delete!(opponents[team_a], team_b)
+                delete!(opponents[team_b], team_a)
                 slots[slot][field] = nothing
             end
         end
@@ -189,13 +161,9 @@ function mymatch(teams, slots, slot, field, games)
 end
 
 
-function pretty_print(slots)
-    for slot in sort(collect(keys(slots)))
-        print("\nSlot: ", slot)
-        for field in sort(collect(keys(slots[slot])))
-            print("\t \t Field ", field, ":\t")
-            print("Team ", slots[slot][field].team1.name)
-            print("\tvs\tTeam ", slots[slot][field].team2.name)
-        end
-    end
+function solve()
+    Random.seed!(1234)
+    games = Dict{Team, Int}(team => 0 for team in teams) 
+    opponents = Dict{Team, Set{Team}}(team => Set{Team}() for team in teams)
+    mymatch(teams, get_slots(), 1, 1, games, opponents)
 end
