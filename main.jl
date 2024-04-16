@@ -28,6 +28,20 @@ function pretty_print(slots)
     end
 end
 
+function pretty_print_csv(slots)
+    println("New solution found!")
+    for slot in sort(collect(keys(slots)))
+        for field in sort(collect(keys(slots[slot])))
+            print(slots[slot][field].team1.name,"\t")
+            print(slots[slot][field].team2.name, "\t")
+        end
+        print("\n")
+    end
+    println("\n\n")
+end
+
+
+
 function get_slots()
     SLOTS = Dict(
         1 => Dict{Int, Union{Nothing, Game}}(
@@ -120,7 +134,7 @@ end
 
 function mymatch(teams, slots, slot, field, games, opponents)
     if slot > 10
-        pretty_print(slots)
+        pretty_print_csv(slots)
         return
     end
 
