@@ -52,9 +52,19 @@ function get_slots()
             2 => nothing,
             3 => nothing,
         ),
-    
+        # sunday morning
+         9 => Dict{Int, Union{Nothing, Game}}(
+             1 => nothing,
+             2 => nothing,
+             3 => nothing,
+         ),
+         10 => Dict{Int, Union{Nothing, Game}}(
+             1 => nothing,
+             2 => nothing,
+         ),
     )
 end    
+
 
 
 function check_more_than_4_games(teams, slots)
@@ -65,12 +75,17 @@ function check_more_than_4_games(teams, slots)
                 counter[slots[slot][field].team1] += 1
                 counter[slots[slot][field].team2] += 1
 
-                if counter[slots[slot][field].team1] > 4 || counter[slots[slot][field].team2] > 4
+                ct1 = counter[slots[slot][field].team1]
+                ct2 = counter[slots[slot][field].team2]
+
+                if ((slot < 9 && (ct1 > 4 || ct2 > 4)) ||
+                    (slot < 7 && (ct1 > 3 || ct2 > 3)) ||
+                    (ct1 > 5 || ct2 > 5)) 
                     return true 
                 end
             end
         end
-    end
+    end 
     return false
 end
 
@@ -101,7 +116,7 @@ function get_available_teams(teams, slots, slot)
     
 
     # morning or lunch break
-    if slot == 1 || slot == 6
+    if slot == 1 || slot == 6 || slot == 9
         return available_teams
     end
 
@@ -129,11 +144,12 @@ end
 
 function solve()
     Random.seed!(1234)
-    mymatch(teams, get_slots(), 1, 1)
+    games = Dict{Team, Int}(team => 0 for team in teams) 
+    mymatch(teams, get_slots(), 1, 1, games)
 end
 
-function mymatch(teams, slots, slot, field)
-    if slot > 8 #slot == 8 && field == 3 
+function mymatch(teams, slots, slot, field, games)
+    if slot > 10
         pretty_print(slots)
         return
     end
@@ -147,13 +163,23 @@ function mymatch(teams, slots, slot, field)
             end
             
             slots[slot][field] = Game(team_a, team_b)
+            games[team_a] += 1
+            games[team_b] += 1
+            
+            g = getindex.(Ref(games), keys(games))
+            if ((any(g .> 4) && slot < 9) ||
+                (any(g .> 5)))
 
-            if check_more_than_4_games(teams, slots) == true
                 slots[slot][field] = nothing
+                games[team_a] -= 1
+                games[team_b] -= 1
+
                 continue 
             else
                 slot_new, field_new = next_slot(slots, slot, field)
-                mymatch(teams, slots, slot_new, field_new)
+                mymatch(teams, slots, slot_new, field_new, games)
+                games[team_a] -= 1
+                games[team_b] -= 1
                 slots[slot][field] = nothing
             end
         end
