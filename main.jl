@@ -22,8 +22,8 @@ function pretty_print(slots)
             else
                 print("\t\tField ", field, ":\t")
             end
-            print("", slots[slot][field].team1.name)
-            print("\tvs\t", slots[slot][field].team2.name)
+            print("Team ", slots[slot][field].team1.name)
+            print("\tvs\tTeam ", slots[slot][field].team2.name)
         end
     end
 end
