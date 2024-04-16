@@ -106,7 +106,7 @@ function get_available_teams(teams, slots, slot)
     
 
     # morning or lunch break
-    if slot == 1 || slot == 6 || slot == 9
+    if slot == 1 || slot == 9
         return available_teams
     end
 
@@ -135,7 +135,7 @@ end
 function mymatch(teams, slots, slot, field, games, opponents)
     if slot > 10
         pretty_print_csv(slots)
-        return
+        return true
     end
 
     available_teams = get_available_teams(teams, slots, slot)
@@ -161,11 +161,10 @@ function mymatch(teams, slots, slot, field, games, opponents)
                 games[team_b] -= 1
                 delete!(opponents[team_a], team_b)
                 delete!(opponents[team_b], team_a)
-                    
                 continue 
             else
                 slot_new, field_new = next_slot(slots, slot, field)
-                mymatch(teams, slots, slot_new, field_new, games, opponents)
+                mymatch(teams, slots, slot_new, field_new, games, opponents) && return true
                 games[team_a] -= 1
                 games[team_b] -= 1
                 delete!(opponents[team_a], team_b)
@@ -175,7 +174,7 @@ function mymatch(teams, slots, slot, field, games, opponents)
         end
         push!(available_teams, team_a)
     end
-    return 
+    return false
 end
 
 
