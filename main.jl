@@ -10,6 +10,18 @@ struct Game
 end
 
 
+function graphviz_all_gamees(slots)
+    println("graph G {")
+    for slot in sort(collect(keys(slots)))
+        for field in sort(collect(keys(slots[slot])))
+            if slots[slot][field] != nothing
+                println("\t \"", slots[slot][field].team1.name, "\" -- \"", slots[slot][field].team2.name, "\"")
+            end
+        end
+    end
+    println("}")
+end
+
 
 
 function pretty_print(slots)
@@ -131,10 +143,11 @@ function next_slot(slots, slot, field)
 end
 
 
-function mymatch(teams, slots, slot, field, games, opponents)
+function mymatch(teams, slots, slot, field, games, opponents; show_many=false)
     if slot > 10
         pretty_print_csv(slots)
-        return true
+        graphviz_all_gamees(slots)
+        return show_many ? false : true
     end
 
     available_teams = get_available_teams(teams, slots, slot)
@@ -163,7 +176,7 @@ function mymatch(teams, slots, slot, field, games, opponents)
                 continue 
             else
                 slot_new, field_new = next_slot(slots, slot, field)
-                mymatch(teams, slots, slot_new, field_new, games, opponents) && return true
+                mymatch(teams, slots, slot_new, field_new, games, opponents; show_many) && return true
                 games[team_a] -= 1
                 games[team_b] -= 1
                 delete!(opponents[team_a], team_b)
@@ -177,11 +190,11 @@ function mymatch(teams, slots, slot, field, games, opponents)
 end
 
 
-function solve()
+function solve(; show_many=false)
     #teams = Set([Team("1"), Team("2"), Team("3"), Team("4"), Team("5"), Team("6"), Team("7"), Team("8"), Team("9"), Team("10")])
     teams = Set([Team("1 Scoober Seekers"), Team("2 Universe Huckers"), Team("3 NASA Noobs"), Team("4 Space Cowboys"), Team("5 Overhead Orbiters"), Team("6 Layout Aliens"), Team("7 Moon Patrol"), Team("8 Vulcan League"), Team("9 Hammer Novas"), Team("10 Greatest Flyers")])
     Random.seed!(1234)
     games = Dict{Team, Int}(team => 0 for team in teams) 
     opponents = Dict{Team, Set{Team}}(team => Set{Team}() for team in teams)
-    mymatch(teams, get_slots(), 1, 1, games, opponents)
+    mymatch(teams, get_slots(), 1, 1, games, opponents; show_many)
 end
