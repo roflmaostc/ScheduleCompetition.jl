@@ -17,9 +17,13 @@ function pretty_print(slots)
     for slot in sort(collect(keys(slots)))
         print("\nSlot: ", slot)
         for field in sort(collect(keys(slots[slot])))
-            print("\t \t Field ", field, ":\t")
-            print("Team ", slots[slot][field].team1.name)
-            print("\tvs\tTeam ", slots[slot][field].team2.name)
+            if slot == 10 && field == 1
+                print("\tField ", field, ":\t")
+            else
+                print("\t\tField ", field, ":\t")
+            end
+            print("", slots[slot][field].team1.name)
+            print("\tvs\t", slots[slot][field].team2.name)
         end
     end
 end
