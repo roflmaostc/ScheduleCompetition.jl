@@ -190,11 +190,47 @@ function mymatch(teams, slots, slot, field, games, opponents; show_many=false)
 end
 
 
-function solve(; show_many=false)
+function solve(; show_many=false, seed=1234)
     #teams = Set([Team("1"), Team("2"), Team("3"), Team("4"), Team("5"), Team("6"), Team("7"), Team("8"), Team("9"), Team("10")])
     teams = Set([Team("1 Scoober Seekers"), Team("2 Universe Huckers"), Team("3 NASA Noobs"), Team("4 Space Cowboys"), Team("5 Overhead Orbiters"), Team("6 Layout Aliens"), Team("7 Moon Patrol"), Team("8 Vulcan League"), Team("9 Hammer Novas"), Team("10 Greatest Flyers")])
-    Random.seed!(1234)
+    Random.seed!(seed)
     games = Dict{Team, Int}(team => 0 for team in teams) 
     opponents = Dict{Team, Set{Team}}(team => Set{Team}() for team in teams)
     mymatch(teams, get_slots(), 1, 1, games, opponents; show_many)
+    
+    return true
+end
+
+
+function solve_intersect(; show_many=false, seed=1234)
+    
+    function x(seed)
+        #teams = Set([Team("1"), Team("2"), Team("3"), Team("4"), Team("5"), Team("6"), Team("7"), Team("8"), Team("9"), Team("10")])
+        teams = Set([Team("1 Scoober Seekers"), Team("2 Universe Huckers"), Team("3 NASA Noobs"), Team("4 Space Cowboys"), Team("5 Overhead Orbiters"), Team("6 Layout Aliens"), Team("7 Moon Patrol"), Team("8 Vulcan League"), Team("9 Hammer Novas"), Team("10 Greatest Flyers")])
+        Random.seed!(seed)
+        games = Dict{Team, Int}(team => 0 for team in teams) 
+        opponents = Dict{Team, Set{Team}}(team => Set{Team}() for team in teams)
+        mymatch(teams, get_slots(), 1, 1, games, opponents; show_many)
+        
+        # print length of intersection of opponent between two teams
+        for team_a in teams
+            for team_b in teams
+                if team_a != team_b
+ #pr    intln(team_a.name, "\tvs\t", team_b.name, ":\t\t\t\t", length(intersect(opponents[team_a], opponents[team_b])))
+                    l = length(intersect(opponents[team_a], opponents[team_b]))
+                    # print(opponents[team_a], "\tvs\t", opponents[team_b], ":\t\t\t\t", l)
+                    println(l)
+                    if l < 1 #|| l > 5 
+                        return false
+                    end
+                end
+            end
+        end
+        return true
+    end
+
+    i = seed
+    while false == x(seed)
+        i += 1
+    end
 end
